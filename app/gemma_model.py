@@ -72,7 +72,7 @@ async def call_gemma_api(
         async with session.post(url, headers=headers, json=payload) as resp:
             data = await resp.json()
             if resp.status != 200:
-                err_msg = data.get("error", {}).get("message", str(data))
+                err_msg = data.get("error", {}).get("message", str(data)) if isinstance(data, dict) else str(data)
                 raise RuntimeError(f"Gemma API call failed ({resp.status}): {err_msg}")
 
             if "choices" in data and len(data["choices"]) > 0:
