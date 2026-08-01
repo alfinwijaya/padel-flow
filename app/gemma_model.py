@@ -145,90 +145,22 @@ def _clean_json_response(raw_text: str) -> dict[str, Any] | list[Any]:
     return json.loads(text)
 
 
-def _extract_params_from_prompt(user_prompt: str) -> dict[str, Any]:
-    """Helper to extract tournament parameters deterministically from prompt text."""
-    prompt_lower = user_prompt.lower()
-
-    # 1. Extract Player Count
-    nums_with_players = re.findall(r'(\d+)\s*(?:players?|participants?|people|p\b)', prompt_lower)
-    all_nums = [int(n) for n in re.findall(r'\b\d+\b', prompt_lower) if 4 <= int(n) <= 128]
-    
-    has_players = False
-    num_players = 8
-    if nums_with_players:
-        num_players = int(nums_with_players[0])
-        has_players = True
-    elif all_nums:
-        num_players = all_nums[-1] if len(all_nums) > 1 else all_nums[0]
-        has_players = True
-    elif "player" in prompt_lower or "players" in prompt_lower:
-        has_players = True
-
-    # 2. Extract Venue
-    has_venue = False
-    venue_name = ""
-    venue_kws = ["pik", "bsd", "jakarta", "gading", "padel", "club", "center", "court", "arena", "venue", "location"]
-    if any(kw in prompt_lower for kw in venue_kws):
-        has_venue = True
-        venue_match = re.search(r'(?:at|venue|club|near|in|around)\s+([A-Za-z0-9\s]+?)(?=\s+(?:with|for|next|tomorrow|\d+|$|\.))', user_prompt, re.IGNORECASE)
-        if venue_match:
-            venue_name = venue_match.group(1).strip().title()
-        else:
-            venue_name = "PIK Padel Club" if "pik" in prompt_lower else ("BSD Padel Center" if "bsd" in prompt_lower else "Padel Center")
-
-    # Match Type
-    match_type = "Mexicano" if "mexicano" in prompt_lower else "Americano"
-
-    # Courts
-    num_courts = 2
-    court_match = re.search(r'(\d+)\s*courts?', prompt_lower)
-    if court_match:
-        num_courts = int(court_match.group(1))
-
-    missing = []
-    if not has_venue:
-        missing.append("venue")
-    if not has_players:
-        missing.append("num_players")
-
-    return {
-        "status": "complete" if not missing else "needs_info",
-        "missing_fields": missing,
-        "challenge_message": "" if not missing else ("Please specify the venue location and number of players." if len(missing) == 2 else ("Which venue or padel club will host the tournament?" if "venue" in missing else "How many players will participate in the tournament?")),
-        "tournament_name": f"{venue_name or 'Padel'} {match_type} Open",
-        "match_type": match_type,
-        "num_players": num_players,
-        "num_courts": num_courts,
-        "target_score": 21,
-        "date": "2026-08-08",
-        "time": "09:00",
-        "venue": venue_name,
-        "player_names": [],
-    }
-
-
 async def ai_generate_tournament(user_prompt: str) -> dict[str, Any]:
-    """Uses Gemma to parse tournament prompt and strictly validate venue and player information."""
+    """Simple AI Tournament Generator: Extracts parameters and immediately presents complete specification preview."""
     sys_instruction = (
         "You are an AI Tournament Generator for PadelFlow software.\n"
-        "Parse the user's prompt into tournament configuration fields.\n\n"
-        "Validation Rules:\n"
-        "1. venue: Extract explicit venue or location mentioned by user (e.g., 'Jakarta Padel', 'BSD Padel Center', 'Kelapa Gading'). If user did NOT mention any location or venue, leave venue as empty string \"\".\n"
-        "2. num_players: Extract the integer number of players specified by the user (or count of player_names). If unspecified, set to 0.\n"
-        "3. match_type: 'Americano' or 'Mexicano'.\n\n"
-        "Return ONLY a valid JSON object with keys:\n"
-        "- status: string (\"complete\" or \"needs_info\")\n"
-        "- missing_fields: array of strings\n"
-        "- challenge_message: string\n"
-        "- tournament_name: string\n"
-        "- match_type: string\n"
-        "- num_players: integer\n"
-        "- num_courts: integer\n"
-        "- target_score: integer\n"
-        "- date: string\n"
-        "- time: string\n"
-        "- venue: string\n"
-        "- player_names: array of strings"
+        "Extract tournament parameters from the user's prompt into JSON.\n\n"
+        "Fields to extract:\n"
+        "- tournament_name: string (e.g. 'PIK Padel Open')\n"
+        "- match_type: string ('Americano' or 'Mexicano')\n"
+        "- num_players: integer (default 8 if unspecified)\n"
+        "- num_courts: integer (default 2 if unspecified)\n"
+        "- target_score: integer (max 21, default 21)\n"
+        "- date: string (e.g. '2026-08-08')\n"
+        "- time: string (e.g. '09:00')\n"
+        "- venue: string (e.g. 'PIK Padel Club')\n"
+        "- player_names: array of strings\n\n"
+        "Return ONLY a valid JSON object with these keys."
     )
 
     messages = [
@@ -236,71 +168,80 @@ async def ai_generate_tournament(user_prompt: str) -> dict[str, Any]:
         {"role": "user", "content": user_prompt},
     ]
 
+    prompt_lower = user_prompt.lower()
+
+    # Extract numbers for num_players and num_courts
+    found_nums = [int(n) for n in re.findall(r'\b\d+\b', prompt_lower) if 4 <= int(n) <= 128]
+    num_players = found_nums[0] if found_nums else 8
+    
+    court_match = re.search(r'(\d+)\s*courts?', prompt_lower)
+    num_courts = int(court_match.group(1)) if court_match else 2
+
+    match_type = "Mexicano" if "mexicano" in prompt_lower else "Americano"
+
+    # Extract venue
+    venue = ""
+    venue_match = re.search(r'(?:at|venue|club|near|in|around)\s+([A-Za-z0-9\s]+?)(?=\s+(?:with|for|next|tomorrow|\d+|$|\.))', user_prompt, re.IGNORECASE)
+    if venue_match:
+        venue = venue_match.group(1).strip().title()
+    elif "pik" in prompt_lower:
+        venue = "PIK Padel Club"
+    elif "bsd" in prompt_lower:
+        venue = "BSD Padel Center"
+    elif "gading" in prompt_lower:
+        venue = "Kelapa Gading Padel Center"
+    elif "jakarta" in prompt_lower:
+        venue = "Jakarta Padel Club"
+    else:
+        venue = "Padel Club"
+
     try:
         raw_output = await call_gemma_api(messages, max_tokens=1024, temperature=0.1)
         parsed = _clean_json_response(raw_output)
-        if isinstance(parsed, dict) and "status" in parsed:
-            prompt_lower = user_prompt.lower()
-            
-            # 1. Player Detection
-            found_nums = [int(n) for n in re.findall(r'\b\d+\b', prompt_lower) if 4 <= int(n) <= 128]
-            has_player_kw = any(kw in prompt_lower for kw in ["player", "players", "participant", "participants", "roster"])
-            has_players = (
-                bool(found_nums)
-                or has_player_kw
-                or len(parsed.get("player_names", [])) >= 4
-                or (isinstance(parsed.get("num_players"), int) and parsed["num_players"] >= 4)
-            )
-            
-            if found_nums and (not parsed.get("num_players") or parsed["num_players"] < 4):
-                parsed["num_players"] = found_nums[-1] if len(found_nums) > 1 else found_nums[0]
-            elif not parsed.get("num_players") or parsed["num_players"] < 4:
-                parsed["num_players"] = 8
+        if isinstance(parsed, dict):
+            if parsed.get("venue"):
+                venue = parsed["venue"]
+            if parsed.get("num_players") and isinstance(parsed["num_players"], int) and parsed["num_players"] >= 4:
+                num_players = parsed["num_players"]
+            if parsed.get("num_courts") and isinstance(parsed["num_courts"], int):
+                num_courts = parsed["num_courts"]
+            if parsed.get("match_type"):
+                match_type = parsed["match_type"]
+            t_name = parsed.get("tournament_name") or f"{venue} {match_type} Open"
+            p_names = parsed.get("player_names") if isinstance(parsed.get("player_names"), list) else []
 
-            # 2. Venue Detection
-            venue_str = (parsed.get("venue") or "").strip()
-            location_kw = ["at ", "in ", "near ", "around ", "bsd", "jakarta", "gading", "pik", "club", "center", "court", "arena", "padel", "location", "venue"]
-            has_venue_kw = any(kw in prompt_lower for kw in location_kw)
-            has_venue = (
-                (bool(venue_str) and venue_str.lower() not in ["tbd", "unspecified", "none", ""])
-                or has_venue_kw
-            )
-
-            if has_venue and not venue_str:
-                match = re.search(r'\b(at|in|near|around|venue)\s+([A-Za-z0-9\s]+?)(?=\s+(for|with|next|tomorrow|\d+|$))', user_prompt, re.IGNORECASE)
-                if match:
-                    parsed["venue"] = match.group(2).strip().title()
-                else:
-                    parsed["venue"] = "Padel Center"
-
-            # 3. Check missing fields
-            missing = []
-            if not has_venue:
-                missing.append("venue")
-                parsed["venue"] = ""
-            if not has_players:
-                missing.append("num_players")
-
-            if not missing:
-                parsed["status"] = "complete"
-                parsed["missing_fields"] = []
-                parsed["challenge_message"] = ""
-            else:
-                parsed["status"] = "needs_info"
-                parsed["missing_fields"] = missing
-                if "venue" in missing and "num_players" in missing:
-                    parsed["challenge_message"] = "Please specify the venue location and number of players."
-                elif "venue" in missing:
-                    parsed["challenge_message"] = "Which venue or padel club will host the tournament?"
-                else:
-                    parsed["challenge_message"] = "How many players will participate in the tournament?"
-
-            return parsed
+            return {
+                "status": "complete",
+                "missing_fields": [],
+                "challenge_message": "",
+                "tournament_name": t_name,
+                "match_type": match_type,
+                "num_players": len(p_names) if len(p_names) >= 4 else num_players,
+                "num_courts": num_courts,
+                "target_score": 21,
+                "date": parsed.get("date") or "2026-08-08",
+                "time": parsed.get("time") or "09:00",
+                "venue": venue,
+                "player_names": p_names,
+            }
     except Exception as e:
-        logger.error(f"Error parsing Gemma response for tournament generation: {e}")
+        logger.error(f"Error in simple ai_generate_tournament: {e}")
 
-    # Fallback to deterministic prompt extraction
-    return _extract_params_from_prompt(user_prompt)
+    # Fail-safe complete response
+    return {
+        "status": "complete",
+        "missing_fields": [],
+        "challenge_message": "",
+        "tournament_name": f"{venue} {match_type} Open",
+        "match_type": match_type,
+        "num_players": num_players,
+        "num_courts": num_courts,
+        "target_score": 21,
+        "date": "2026-08-08",
+        "time": "09:00",
+        "venue": venue,
+        "player_names": [],
+    }
 
 
 async def ai_recommend_venues(user_prompt: str) -> list[dict[str, Any]]:
