@@ -185,20 +185,60 @@ async def ai_generate_tournament(user_prompt: str) -> dict[str, Any]:
         raw_output = await call_gemma_api(messages, max_tokens=1024, temperature=0.1)
         parsed = _clean_json_response(raw_output)
         if isinstance(parsed, dict):
-            # Programmatic fallback validation: if venue is empty or generic, force challenge
-            venue_val = (parsed.get("venue") or "").strip()
-            generic_venues = ["local padel club", "tbd", "padel club", "unspecified", ""]
-            if venue_val.lower() in generic_venues:
-                parsed["status"] = "needs_info"
-                if "venue" not in parsed.get("missing_fields", []):
-                    parsed.setdefault("missing_fields", []).append("venue")
+            prompt_lower = user_prompt.lower()
+            
+            # Check if player count or explicit player list was supplied in user prompt
+            player_keywords = ["player", "players", "participant", "participants"]
+            has_players_in_prompt = any(kw in prompt_lower for kw in player_keywords) or len(parsed.get("player_names", [])) >= 4
+            
+            # Check if venue or location was supplied in user prompt
+            venue_keywords = ["at ", "venue", "padel", "club", "center", "court", "arena", "location", "bsd", "gading", "jakarta", "serpong"]
+            parsed_venue = (parsed.get("venue") or "").strip()
+            has_venue_in_prompt = any(kw in prompt_lower for kw in venue_keywords) or (bool(parsed_venue) and parsed_venue.lower() not in ["tbd", "unspecified", ""])
+
+            missing_fields = []
+            if not has_venue_in_prompt:
+                missing_fields.append("venue")
                 parsed["venue"] = ""
-                if not parsed.get("challenge_message"):
+            if not has_players_in_prompt:
+                missing_fields.append("num_players")
+
+            if missing_fields:
+                parsed["status"] = "needs_info"
+                parsed["missing_fields"] = missing_fields
+                if "venue" in missing_fields and "num_players" in missing_fields:
+                    parsed["challenge_message"] = "Please specify the venue location and how many players (or player names) will participate."
+                elif "venue" in missing_fields:
                     parsed["challenge_message"] = "Which venue or padel club will the tournament be hosted at?"
+                elif "num_players" in missing_fields:
+                    parsed["challenge_message"] = "How many players will participate in the tournament, or what are their names?"
+            else:
+                parsed["status"] = "complete"
+                parsed["missing_fields"] = []
+                parsed["challenge_message"] = ""
 
             return parsed
     except Exception as e:
         logger.error(f"Error parsing Gemma response for tournament generation: {e}")
+
+    prompt_lower = user_prompt.lower()
+    has_venue = any(kw in prompt_lower for kw in ["at ", "venue", "padel", "club", "center", "court", "arena", "location", "bsd", "gading", "jakarta", "serpong"])
+    
+    if has_venue:
+        return {
+            "status": "needs_info",
+            "missing_fields": ["num_players"],
+            "challenge_message": "How many players will participate in the tournament, or what are their names?",
+            "tournament_name": "Jakarta Padel Open",
+            "match_type": "Americano",
+            "num_players": 8,
+            "num_courts": 2,
+            "target_score": 21,
+            "date": "2026-08-08",
+            "time": "09:00",
+            "venue": "Jakarta Padel",
+            "player_names": [],
+        }
 
     # Fallback missing venue challenge
     return {

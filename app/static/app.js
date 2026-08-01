@@ -214,6 +214,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    let activeRoundFilter = "all";
+
     // Render Matches List
     function renderMatches() {
         const container = document.getElementById("matches-container");
@@ -233,20 +235,23 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const rounds = [...new Set(currentTournament.matches.map(m => m.round))];
-        pillsContainer.innerHTML = '<button class="pill active" data-round="all">All Rounds</button>';
+        const isAllActive = activeRoundFilter === "all";
+        pillsContainer.innerHTML = `<button class="pill ${isAllActive ? 'active' : ''}" data-round="all">All Rounds</button>`;
         rounds.forEach(r => {
-            pillsContainer.innerHTML += `<button class="pill" data-round="${r}">Round ${r}</button>`;
+            const isActive = activeRoundFilter.toString() === r.toString();
+            pillsContainer.innerHTML += `<button class="pill ${isActive ? 'active' : ''}" data-round="${r}">Round ${r}</button>`;
         });
 
         pillsContainer.querySelectorAll(".pill").forEach(p => {
             p.addEventListener("click", () => {
                 pillsContainer.querySelectorAll(".pill").forEach(b => b.classList.remove("active"));
                 p.classList.add("active");
-                filterMatches(p.dataset.round);
+                activeRoundFilter = p.dataset.round;
+                filterMatches(activeRoundFilter);
             });
         });
 
-        filterMatches("all");
+        filterMatches(activeRoundFilter);
     }
 
     function filterMatches(roundFilter) {
