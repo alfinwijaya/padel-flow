@@ -2,7 +2,7 @@
 
 # PadelFlow
 
-### AI-Powered Padel Tournament Management
+### AI-Powered Padel Tournament Management System
 
 ---
 
@@ -12,7 +12,7 @@
 
 Organizing Americano and Mexicano padel tournaments often requires manual scheduling, scorekeeping, and leaderboard calculations. These tasks become increasingly difficult as the number of players grows.
 
-PadelFlow simplifies tournament management by automating match generation, providing real-time score tracking, maintaining live leaderboards, and utilizing AI to create tournaments and recommend venues from natural language descriptions.
+PadelFlow simplifies tournament management by automating match generation, providing real-time score tracking, maintaining live leaderboards, persisting data to Google Cloud Firestore, and utilizing **Gemma 4** (`google/gemma-4-26b-a4b-it-maas`) via Vertex AI to generate tournaments from natural language, recommend venues, and answer strategy questions.
 
 ---
 
@@ -20,415 +20,204 @@ PadelFlow simplifies tournament management by automating match generation, provi
 
 The application aims to:
 
-* Reduce tournament setup time
-* Eliminate manual match scheduling
-* Simplify scorekeeping
-* Automatically calculate rankings
-* Improve tournament management using AI
+* Reduce tournament setup time using natural language AI generation.
+* Eliminate manual match scheduling via deterministic Americano and Mexicano pairing algorithms.
+* Provide real-time broadcast scorekeeping with strict 21-point score caps.
+* Automatically calculate live standings, wins, losses, and point differentials (+/-).
+* Persist all tournament and leaderboard state in **Google Cloud Firestore**.
+* Serve an editorial-grade, ultra-clean sports-tech web interface with Dark/Light theme switching.
 
 ---
 
 # 3. Target User
 
-## Tournament Organizer
+## Tournament Organizer & Club Manager
 
 Responsible for:
 
-* Creating tournaments
-* Generating matches
-* Managing live scores
-* Monitoring leaderboard
-* Using AI features
+* Creating and editing tournaments (manually or via AI).
+* Extracting player rosters and specifying venue details.
+* Generating matches and rounds.
+* Managing live scores with 21-point score caps.
+* Monitoring live leaderboards and declaring champions.
+* Leveraging AI Studio tools for venue discovery and strategy advice.
 
 ---
 
-# 4. Features
+# 4. Feature Specifications
 
 ---
 
-# Feature 1 — Tournament Management
+# Feature 1 — Tournament Management & Persistence
 
 ## Description
 
-Allows organizers to create and manage tournaments.
+Allows organizers to create, edit, view, and delete tournaments with full persistence backed by **Google Cloud Firestore**.
 
 ### Functional Requirements
 
-* Create Tournament
-* Edit Tournament
+* Create Tournament (Manual or AI-assisted)
+* Edit Tournament parameters (before generating matches)
 * Delete Tournament
-* View Tournament Details
+* View Active Tournament Details
+* Persistent state saved in Google Cloud Firestore (`tournaments` collection)
 
-### Tournament Information
+### Tournament Model Schema
 
-| Field             | Type                 |
-| ----------------- | -------------------- |
-| Tournament Name   | Text                 |
-| Match Type        | Americano / Mexicano |
-| Number of Players | Integer              |
-| Number of Courts  | Integer              |
-| Target Score      | Integer              |
-| Tournament Date   | Date                 |
-| Tournament Time   | Time                 |
-| Venue             | Text                 |
-
-### Acceptance Criteria
-
-* Tournament is successfully saved.
-* Organizer can edit tournament before generating matches.
+| Field             | Type                 | Description |
+| ----------------- | -------------------- | ----------- |
+| Tournament ID     | String (UUID)        | Unique identifier |
+| Tournament Name   | Text                 | Name of event |
+| Match Type        | Americano / Mexicano | Rotation format |
+| Number of Players | Integer              | Participant count (min 4, step 4) |
+| Number of Courts  | Integer              | Active courts available |
+| Target Score      | Integer              | Score target (Max 21 pts) |
+| Tournament Date   | Date                 | YYYY-MM-DD |
+| Tournament Time   | Time                 | HH:MM |
+| Venue             | Text                 | Venue location name |
+| Player Names      | Array of Strings     | Roster of player names |
 
 ---
 
-# Feature 2 — AI Tournament Generator
+# Feature 2 — AI Tournament Generator with Multi-Turn Challenge Loop
 
 ## Description
 
-Generate tournament information from natural language.
+Generates complete tournament structures from natural language using **Gemma 4** (`google/gemma-4-26b-a4b-it-maas`) on Vertex AI.
 
-### User Input
+### User Input Example
 
-Example
+> "Create an Americano tournament for 8 players: Carlos, Juan, Rafael, Pablo, Fernando, Diego, Lucas, Mateo at BSD Padel Center with 2 courts."
 
-> "Create an Americano tournament for 16 players next Saturday at 9 AM around BSD with 4 courts."
+### Multi-Turn Information Validation & Challenge Loop
 
-### AI Extracts
-
-* Tournament Name
-* Match Type
-* Player Count
-* Number of Courts
-* Date
-* Time
-* Area
-* Target Score
+* **Mandatory Required Details**: Player info/count, match format (Americano/Mexicano), and venue location.
+* **Challenge Behavior**: If ANY mandatory detail (such as venue location) is missing from the prompt, Gemma sets `status: "needs_info"`, identifies missing fields, and generates a challenge question asking the user specifically for the missing information.
+* **No Hallucinated Venues**: Prevents fake or auto-filled venue names when user input is incomplete.
 
 ### Output
 
-Automatically populate the tournament form.
-
-### Acceptance Criteria
-
-* Missing fields remain editable.
-* Organizer confirms before saving.
+Populates the tournament setup card with extracted player rosters, game type, courts, date/time, and target score for user confirmation before launching.
 
 ---
 
-# Feature 3 — AI Venue Recommendation
+# Feature 3 — AI Venue Finder
 
 ## Description
 
-Recommend padel venues based on location descriptions.
+Recommends padel clubs and venues based on user location queries using **Gemma 4**.
 
-### Example
+### User Input Example
 
-> "Find a venue around Kelapa Gading with at least four courts."
+> "Find a venue around Kelapa Gading with at least 4 courts."
 
 ### Output
 
-Display recommended venues including:
+Displays structured venue cards containing:
 
 * Venue Name
-* Address
-* Number of Courts (if available)
-
-### User Action
-
-Select a venue.
-
-The selected venue populates the tournament information.
+* Address & Location
+* Court Capacity
+* Facility Highlights (e.g. indoor/outdoor, LED lighting, coffee lounge)
 
 ---
 
-# Feature 4 — Match Generation
+# Feature 4 — AI Tournament Advisor Chat Agent
 
-## Americano
+## Description
 
-Generate every tournament round immediately.
-
-Requirements
-
-* Generate all rounds automatically.
-* Fair partner rotation.
-* Fair opponent rotation.
-* Court assignment.
+An embedded AI assistant (`/api/ai/chat`) providing instant answers to rule questions, pairing balance strategies for odd player numbers, and schedule management advice.
 
 ---
 
-## Mexicano
+# Feature 5 — Match Generation Engine
 
-Generate only Round 1.
+## Americano Format
 
-After every completed round:
+Generates the complete tournament schedule immediately:
 
-1. Calculate leaderboard.
-2. Sort players.
-3. Generate next round automatically.
+* Calculates all round pairings.
+* Ensures every player partners with every other player once.
+* Assigns courts evenly.
 
----
+## Mexicano Format
 
-# Feature 5 — Match Schedule
+Generates Round 1 initially. After each completed round:
 
-Display tournament schedule.
-
-Each match contains:
-
-* Round
-* Court
-* Team A
-* Team B
-* Status
-
-Status
-
-* Upcoming
-* Ongoing
-* Finished
-
-Example
-
-| Round | Court   | Team A              | Team B              | Status   |
-| ----- | ------- | ------------------- | ------------------- | -------- |
-| 1     | Court 1 | Player A & Player B | Player C & Player D | Upcoming |
+1. Calculates current leaderboard rankings.
+2. Pairs adjacent ranked players (Rank 1 & 2 vs Rank 3 & 4).
+3. Automatically generates the next round.
 
 ---
 
 # Feature 6 — Live Match Scoring
 
-## Description
+## Interface & Rules
 
-Score is updated using increment/decrement buttons.
-
-### Interface
-
-Team A
-
-[-] 18 [+]
-
-VS
-
-[-] 16 [+]
-
-Team B
-
-### Functional Requirements
-
-* Increase score
-* Decrease score
-* Prevent negative score
-* Detect winner
-* Lock completed match
-
-### Rules
-
-* First team reaching Target Score wins.
-* Completed matches become read-only.
+* Real-time `+` / `-` point stepper controls.
+* **Strict Point Cap Validation**: Total points in a match (`score_a + score_b`) cannot exceed 21 points (or target score).
+* Winner detection and match lock once target score is reached.
 
 ---
 
-# Feature 7 — Live Leaderboard
+# Feature 7 — Live Leaderboard & Dashboard
 
-Display rankings throughout the tournament.
-
-Columns
-
-* Rank
-* Player
-* Total Points
-
-Optional
-
-* Wins
-* Losses
-* Point Difference
-
-Automatically updates after each completed match.
+* Real-time calculation of player ranks, total points, wins, losses, point differences (+/-), and completed matches.
+* Top 3 Podium summary widget on Dashboard.
+* Tournament completion progress ring percentage (`completed_matches / total_matches`).
 
 ---
 
-# Feature 8 — Dashboard
+# 5. Architecture & Tech Stack
 
-Display tournament summary.
-
-Widgets
-
-* Tournament Name
-* Match Type
-* Total Players
-* Courts
-* Completed Matches
-* Remaining Matches
-* Current Round
-* Current Leader
+| Layer | Component / Technology |
+| ----- | --------------------- |
+| **AI Model** | **Gemma 4** (`google/gemma-4-26b-a4b-it-maas`) via Vertex AI |
+| **Backend Framework** | Python 3.12, FastAPI, Google ADK (Agent Development Kit 2.x) |
+| **Persistence Store** | Google Cloud Firestore |
+| **Frontend UI** | Modern HTML5, CSS3 Custom Properties (Dark/Light Mode), ES6+ JavaScript |
+| **Deployment** | Google Cloud Run (Private & Secure execution in `us-central1`) |
 
 ---
 
-# Feature 9 — Tournament Progress
-
-Display tournament progress.
-
-Information
-
-* Current Round
-* Current Match
-* Remaining Matches
-* Tournament Completion Percentage
-
----
-
-# Feature 10 — Tournament Completion
-
-When every match has finished:
-
-The system automatically
-
-* Calculates final standings
-* Declares champion
-* Displays final leaderboard
-
----
-
-# 5. Functional Requirements Summary
-
-| ID    | Requirement                 |
-| ----- | --------------------------- |
-| FR-01 | Create Tournament           |
-| FR-02 | Edit Tournament             |
-| FR-03 | Delete Tournament           |
-| FR-04 | AI Tournament Generator     |
-| FR-05 | AI Venue Recommendation     |
-| FR-06 | Generate Americano Schedule |
-| FR-07 | Generate Mexicano Schedule  |
-| FR-08 | View Match Schedule         |
-| FR-09 | Update Live Score           |
-| FR-10 | Complete Match              |
-| FR-11 | View Live Leaderboard       |
-| FR-12 | View Tournament Dashboard   |
-| FR-13 | View Tournament Progress    |
-| FR-14 | Complete Tournament         |
-
----
-
-# 6. Non-Functional Requirements
-
-## Performance
-
-* Score updates should appear instantly.
-* Leaderboard recalculation should complete within 2 seconds.
-* Tournament generation should complete within 5 seconds.
-
----
-
-## Usability
-
-* Minimal user input.
-* Simple click-based scoring.
-* Mobile-friendly interface.
-
----
-
-## Reliability
-
-* No duplicate match generation.
-* Leaderboard calculations remain consistent.
-* Tournament data is persisted correctly.
-
----
-
-## Maintainability
-
-* Separate AI services from tournament logic.
-* Modular match generation algorithms.
-* Reusable leaderboard calculation module.
-
----
-
-# 7. User Flow
+# 6. User Flow
 
 ```text
-Dashboard
+Dashboard / Top Header
     │
     ▼
-Create Tournament
+Select Active Tournament or Open AI Studio
     │
-    ├───────────────┐
-    ▼               ▼
-AI Tournament   Manual Form
-Generator
-    │
-    ▼
-AI Venue Recommendation
+    ├──────────────────────────────┐
+    ▼                              ▼
+AI Tournament Generator        Manual Form Modal
+(Gemma 4 Vertex AI)
     │
     ▼
-Create Tournament
+(If missing venue/players)
+Multi-Turn AI Challenge Loop
     │
     ▼
-Generate Matches
+Review & Launch Tournament
     │
     ▼
-Tournament Dashboard
+Save to Cloud Firestore
     │
     ▼
-Select Ongoing Match
+Generate Matches (Americano / Mexicano)
     │
     ▼
-Live Score (+ / −)
+Live Match Scoring (Max 21 Pts)
     │
     ▼
-Finish Match
-    │
-    ▼
-Update Leaderboard
-    │
-    ▼
-(If Mexicano)
-Generate Next Round
-    │
-    ▼
-Tournament Completed
+Real-Time Leaderboard & Completion Podium
 ```
 
 ---
 
-# 8. MVP Scope
+# 7. Non-Functional Requirements
 
-## Included
-
-* Tournament Management
-* Americano Tournament
-* Mexicano Tournament
-* AI Tournament Generator
-* AI Venue Recommendation
-* Automatic Match Generation
-* Live Score
-* Dashboard
-* Live Leaderboard
-
-## Excluded
-
-* Authentication
-* Player Invitation
-* Registration
-* Club Management
-* Notifications
-* Payment
-* Export PDF/Excel
-* Player Statistics
-* Tournament History
-* Mobile Push Notifications
-
----
-
-# 9. Future Enhancements
-
-* Player accounts
-* QR code tournament sharing
-* Player invitations
-* Tournament history
-* Club management
-* Team Americano format
-* Mixed Americano format
-* ELO player ratings
-* AI match balancing based on skill level
-* PDF and Excel exports
-* Public spectator mode
-* Seasonal rankings and leagues
+* **Performance**: Score updates and leaderboard recalculations process instantly (< 200ms).
+* **Reliability**: All tournament data persisted in Cloud Firestore.
+* **Score Integrity**: Total match points strictly capped at 21.
+* **Usability**: Mobile-friendly, dark/light theme switching, editorial sports-tech styling.
