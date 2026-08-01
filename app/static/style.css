@@ -1,0 +1,1115 @@
+/* PadelFlow - Premium Editorial Sports-Tech Design System */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root, [data-theme="dark"] {
+    --bg-main: #080B10;
+    --bg-sidebar: #0C1017;
+    --bg-card: #121722;
+    --bg-card-hover: #181F2E;
+    --bg-surface: #1C2433;
+    --border-color: rgba(255, 255, 255, 0.09);
+    --border-accent: rgba(204, 255, 0, 0.35);
+    
+    --primary: #CCFF00; /* Court Electric Neon Lime */
+    --primary-hover: #b8e600;
+    --primary-glow: rgba(204, 255, 0, 0.22);
+    --primary-text: #080B10;
+    
+    --accent-blue: #38BDF8;
+    --accent-purple: #C084FC;
+    --accent-emerald: #34D399;
+    
+    --text-main: #F8FAFC;
+    --text-muted: #94A3B8;
+    --text-dim: #64748B;
+    
+    --input-bg: #161D2B;
+    --input-border: rgba(255, 255, 255, 0.14);
+    --input-text: #FFFFFF;
+    --select-option-bg: #121722;
+    --select-option-text: #F8FAFC;
+
+    --danger: #FF4D4D;
+    --success: #10B981;
+    --warning: #F59E0B;
+    
+    --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    --font-display: 'Space Grotesk', monospace;
+    
+    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.25);
+    --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="light"] {
+    --bg-main: #F1F5F9;
+    --bg-sidebar: #FFFFFF;
+    --bg-card: #FFFFFF;
+    --bg-card-hover: #F8FAFC;
+    --bg-surface: #E2E8F0;
+    --border-color: #CBD5E1;
+    --border-accent: rgba(45, 106, 79, 0.35);
+    
+    --primary: #2D6A4F; /* Deep Court Emerald */
+    --primary-hover: #1B4332;
+    --primary-glow: rgba(45, 106, 79, 0.2);
+    --primary-text: #FFFFFF;
+    
+    --accent-blue: #0284C7;
+    --accent-purple: #7E22CE;
+    --accent-emerald: #059669;
+    
+    --text-main: #0F172A;
+    --text-muted: #475569;
+    --text-dim: #64748B;
+    
+    --input-bg: #FFFFFF;
+    --input-border: #94A3B8;
+    --input-text: #0F172A;
+    --select-option-bg: #FFFFFF;
+    --select-option-text: #0F172A;
+
+    --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.07);
+    --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: var(--font-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+    letter-spacing: -0.015em;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* App Container */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar Navigation */
+.sidebar {
+    width: 300px;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 36px 28px;
+    gap: 40px;
+    transition: background-color 0.2s ease;
+    z-index: 10;
+    shrink: 0;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.brand-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: var(--primary);
+    color: var(--primary-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.brand-text h1 {
+    font-family: var(--font-heading);
+    font-size: 1.55rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--text-main);
+}
+
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+    border-radius: 14px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    font-family: var(--font-main);
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+}
+
+.nav-item:hover {
+    color: var(--text-main);
+    background: var(--bg-surface);
+}
+
+.nav-item.active {
+    color: var(--primary-text);
+    background: var(--primary);
+    font-weight: 800;
+    box-shadow: 0 6px 20px var(--primary-glow);
+}
+
+.nav-item svg {
+    transition: stroke 0.15s ease;
+}
+
+/* AI Assistant Promo Widget in Sidebar */
+.ai-shortcuts-card {
+    margin-top: auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.ai-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+
+.ai-shortcuts-card p {
+    font-size: 0.84rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* Main Content Area - Generous Spacing */
+.main-content {
+    flex: 1;
+    padding: 48px 64px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Top Header Bar */
+.top-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 22px 36px;
+    border-radius: 24px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 8px;
+}
+
+.active-tournament-selector {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.active-tournament-selector .label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+/* Section Header */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.section-header h2 {
+    font-family: var(--font-heading);
+    font-size: 1.85rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.subtext {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+    line-height: 1.5;
+}
+
+/* Cards & Surface Containers with Generous Padding & Distinct Gaps */
+.glass-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 28px;
+    padding: 36px 44px;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.glass-card:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+    box-shadow: var(--shadow-md);
+}
+
+.w-full-card {
+    width: 100%;
+}
+
+/* Buttons System */
+.btn {
+    padding: 13px 26px;
+    border-radius: 14px;
+    font-family: var(--font-main);
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.18s ease;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: var(--primary-text);
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 6px 20px var(--primary-glow);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: var(--input-bg);
+    color: var(--text-main);
+    border: 1px solid var(--input-border);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-surface);
+    border-color: var(--text-muted);
+}
+
+.btn-ai {
+    background: var(--primary);
+    color: var(--primary-text);
+    box-shadow: 0 6px 20px var(--primary-glow);
+}
+
+.btn-ai:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+}
+
+.btn-text {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    font-weight: 800;
+    font-size: 0.88rem;
+    cursor: pointer;
+}
+
+.w-full { width: 100%; }
+.hidden { display: none !important; }
+
+/* Tabs System */
+.tab-content {
+    display: none;
+    flex-direction: column;
+    gap: 36px;
+}
+
+.tab-content.active {
+    display: flex;
+}
+
+/* Dashboard Grid & Cards */
+.dashboard-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+}
+
+.main-summary-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-accent);
+    padding: 40px 48px;
+    border-radius: 28px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 28px;
+}
+
+.card-header h2 {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-top: 8px;
+}
+
+.badge {
+    padding: 6px 16px;
+    border-radius: 24px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.badge-type {
+    background: rgba(56, 189, 248, 0.14);
+    color: var(--accent-blue);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.badge-status {
+    background: rgba(16, 185, 129, 0.14);
+    color: var(--success);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.meta-row {
+    display: flex;
+    gap: 56px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 24px;
+}
+
+.meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.meta-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+}
+
+.meta-value {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+/* Stats Row Grid - Wider Spacing */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 28px;
+}
+
+.stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 32px;
+    border-radius: 24px;
+}
+
+.stat-title {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+}
+
+.highlight-card {
+    border-color: var(--border-accent);
+}
+
+.highlight-card .stat-value {
+    color: var(--primary);
+}
+
+.stat-sub {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+/* Two Column Grid */
+.two-col-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+}
+
+.align-start {
+    align-items: start;
+}
+
+.progress-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    margin-top: 20px;
+}
+
+.progress-ring-container {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-ring-fill {
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke-dashoffset 0.4s ease;
+}
+
+.progress-text {
+    position: absolute;
+    font-family: var(--font-display);
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.progress-details {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+}
+
+.prog-detail-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.prog-detail-item strong {
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+/* Form Controls & Inputs */
+.form-input, .form-select, .form-textarea {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    color: var(--input-text);
+    font-family: var(--font-main);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.form-select {
+    cursor: pointer;
+    appearance: auto;
+}
+
+.form-select option {
+    background-color: var(--select-option-bg) !important;
+    color: var(--select-option-text) !important;
+    padding: 12px;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--primary);
+}
+
+/* AI Studio Styling */
+.ai-tool-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.ai-tool-header h3 {
+    font-family: var(--font-heading);
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.prompt-templates {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.template-chip {
+    font-size: 0.8rem;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 8px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.template-chip:hover {
+    color: var(--text-main);
+    border-color: var(--primary);
+    background: var(--bg-surface);
+}
+
+/* Challenge Alert Card */
+.ai-challenge-card {
+    margin-top: 24px;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid var(--warning);
+    border-radius: 20px;
+    padding: 28px;
+}
+
+.challenge-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--warning);
+    margin-bottom: 8px;
+}
+
+.challenge-header h4 {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.missing-tags-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.missing-tag {
+    font-size: 0.75rem;
+    font-weight: 800;
+    background: rgba(245, 158, 11, 0.18);
+    border: 1px solid var(--warning);
+    color: var(--warning);
+    padding: 5px 12px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.ai-result-preview-card {
+    margin-top: 24px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-accent);
+    border-radius: 20px;
+    padding: 32px;
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.result-header h4 {
+    font-family: var(--font-heading);
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.result-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    font-size: 0.95rem;
+}
+
+.res-label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+}
+
+.chat-response-box {
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 22px;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--text-main);
+    white-space: pre-line;
+}
+
+/* Matches Grid & Scoreboard Cards - Generous Gaps */
+.matches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 32px;
+}
+
+.match-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.match-card.finished {
+    border-color: var(--success);
+}
+
+.match-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.court-badge {
+    font-size: 0.78rem;
+    font-weight: 800;
+    background: var(--bg-surface);
+    padding: 6px 12px;
+    border-radius: 10px;
+    color: var(--text-muted);
+}
+
+.match-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--input-bg);
+    border-radius: 18px;
+    padding: 20px;
+}
+
+.team-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 42%;
+}
+
+.team-players {
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.score-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.btn-score {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--bg-surface);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    font-size: 1.2rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.btn-score:hover {
+    background: var(--primary);
+    color: var(--primary-text);
+}
+
+.score-display {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    min-width: 40px;
+    text-align: center;
+}
+
+.vs-divider {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+}
+
+/* Leaderboard Table */
+.table-card {
+    padding: 0;
+    overflow: hidden;
+    border-radius: 24px;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.leaderboard-table th {
+    background: var(--bg-surface);
+    padding: 20px 28px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.leaderboard-table td {
+    padding: 20px 28px;
+    font-size: 0.98rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-weight: 800;
+    font-size: 0.88rem;
+    background: var(--bg-surface);
+    color: var(--text-main);
+}
+
+.rank-1 { background: #FFD700; color: #000000; }
+.rank-2 { background: #E2E8F0; color: #000000; }
+.rank-3 { background: #CD7F32; color: #FFFFFF; }
+
+/* Filter Bar */
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 16px 24px;
+    background: var(--bg-card);
+    border-radius: 18px;
+    border: 1px solid var(--border-color);
+}
+
+.round-pills {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.pill {
+    padding: 8px 20px;
+    border-radius: 24px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.pill.active {
+    background: var(--primary);
+    color: var(--primary-text);
+    border-color: var(--primary);
+    font-weight: 800;
+}
+
+/* Modals */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.modal-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 28px;
+    width: 560px;
+    max-width: 90vw;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.modal-lg {
+    width: 720px;
+}
+
+.modal-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-close {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.6rem;
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 36px;
+}
+
+.modal-footer {
+    padding: 20px 32px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.col-span-2 {
+    grid-column: span 2;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.input-group {
+    display: flex;
+    gap: 12px;
+}
+
+.input-group .form-input {
+    flex: 1;
+}
+
+.ai-loading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 18px;
+    color: var(--primary);
+    font-size: 0.9rem;
+}
+
+.spinner {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.venues-results-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.venue-card-item {
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 18px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.venue-card-item h4 {
+    font-size: 1rem;
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.venue-card-item p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.empty-state {
+    text-align: center;
+    color: var(--text-dim);
+    padding: 36px;
+    font-size: 0.95rem;
+}
+
+/* Tournaments Grid - Wider Spacing */
+.tournaments-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 32px;
+}
+
+.tournament-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transition: all 0.18s ease;
+}
+
+.tournament-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-3px);
+}
+
+.t-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.t-card-header h3 {
+    font-family: var(--font-heading);
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.t-card-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    font-size: 0.9rem;
+}
+
+.t-card-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.podium-mini-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.podium-mini-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    background: var(--input-bg);
+    border-radius: 12px;
+    font-size: 0.92rem;
+}
+
+.trophy-anim {
+    font-size: 3.5rem;
+    margin-bottom: 12px;
+}
+
+.celebration-card {
+    text-align: center;
+    padding: 24px;
+}

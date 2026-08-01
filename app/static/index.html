@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PadelFlow - Pro Padel Tournament Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M6 12a6 6 0 0 1 6-6" />
+                        <path d="M12 18a6 6 0 0 1 6-6" />
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>PadelFlow</h1>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="dashboard">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+                    Dashboard
+                </button>
+                <button class="nav-item" data-tab="ai-studio">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                    AI Studio
+                </button>
+                <button class="nav-item" data-tab="tournaments">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+                    Tournaments
+                </button>
+                <button class="nav-item" data-tab="matches">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m4.93 19.07 4.24-4.24"/></svg>
+                    Live Match Scoring
+                </button>
+                <button class="nav-item" data-tab="leaderboard">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                    Live Leaderboard
+                </button>
+            </nav>
+
+            <div class="ai-shortcuts-card">
+                <div class="ai-card-header">
+                    <span>AI Assistant</span>
+                </div>
+                <p>Natural language tournament specs, venue discovery & instant scheduling.</p>
+                <button class="btn btn-ai w-full" id="btn-goto-ai-studio">
+                    Open AI Studio
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Bar Header -->
+            <header class="top-header">
+                <div class="active-tournament-selector">
+                    <span class="label">ACTIVE TOURNAMENT</span>
+                    <select id="select-active-tournament" class="form-select font-bold">
+                        <option value="">-- Select a Tournament --</option>
+                    </select>
+                </div>
+                <div class="header-actions" style="display: flex; gap: 12px; align-items: center;">
+                    <button class="btn btn-secondary" id="btn-theme-toggle" title="Toggle Light / Dark Theme">
+                        <span id="theme-toggle-icon">🌙</span>
+                        <span id="theme-toggle-text">Dark</span>
+                    </button>
+                    <button class="btn btn-primary" id="btn-create-tournament-modal">
+                        + New Tournament
+                    </button>
+                </div>
+            </header>
+
+            <!-- Tab 1: Dashboard -->
+            <section id="tab-dashboard" class="tab-content active">
+                <div class="dashboard-grid">
+                    <!-- Tournament Summary Card -->
+                    <div class="glass-card main-summary-card">
+                        <div class="card-header">
+                            <div>
+                                <span class="badge badge-type" id="dash-match-type">Americano</span>
+                                <h2 id="dash-title">Select or Create a Tournament</h2>
+                            </div>
+                            <span class="badge badge-status" id="dash-status">Status</span>
+                        </div>
+                        <div class="meta-row">
+                            <div class="meta-item">
+                                <span class="meta-label">VENUE</span>
+                                <span class="meta-value" id="dash-venue">-</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">DATE & TIME</span>
+                                <span class="meta-value" id="dash-datetime">-</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">TARGET SCORE</span>
+                                <span class="meta-value" id="dash-target-score">21 pts</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Widgets Row -->
+                    <div class="stats-row">
+                        <div class="glass-card stat-card">
+                            <div class="stat-title">PLAYERS</div>
+                            <div class="stat-value" id="dash-players">0</div>
+                            <div class="stat-sub">Registered participants</div>
+                        </div>
+                        <div class="glass-card stat-card">
+                            <div class="stat-title">COURTS</div>
+                            <div class="stat-value" id="dash-courts">0</div>
+                            <div class="stat-sub">Active courts</div>
+                        </div>
+                        <div class="glass-card stat-card">
+                            <div class="stat-title">CURRENT ROUND</div>
+                            <div class="stat-value" id="dash-round">0</div>
+                            <div class="stat-sub" id="dash-round-sub">Matches in progress</div>
+                        </div>
+                        <div class="glass-card stat-card highlight-card">
+                            <div class="stat-title">CURRENT LEADER</div>
+                            <div class="stat-value" id="dash-leader">-</div>
+                            <div class="stat-sub">Highest total points</div>
+                        </div>
+                    </div>
+
+                    <!-- Progress & Next Matches Grid -->
+                    <div class="two-col-grid">
+                        <div class="glass-card progress-card">
+                            <h3>Tournament Completion</h3>
+                            <div class="progress-wrapper">
+                                <div class="progress-ring-container">
+                                    <svg class="progress-ring" width="120" height="120">
+                                        <circle class="progress-ring-bg" stroke="rgba(128,128,128,0.2)" stroke-width="10" fill="transparent" r="50" cx="60" cy="60"/>
+                                        <circle id="dash-progress-circle" class="progress-ring-fill" stroke="var(--primary)" stroke-width="10" fill="transparent" r="50" cx="60" cy="60" stroke-dasharray="314.15" stroke-dashoffset="314.15"/>
+                                    </svg>
+                                    <span class="progress-text" id="dash-progress-text">0%</span>
+                                </div>
+                                <div class="progress-details">
+                                    <div class="prog-detail-item">
+                                        <span>Completed Matches</span>
+                                        <strong id="dash-completed-matches">0</strong>
+                                    </div>
+                                    <div class="prog-detail-item">
+                                        <span>Remaining Matches</span>
+                                        <strong id="dash-remaining-matches">0</strong>
+                                    </div>
+                                    <div class="prog-detail-item">
+                                        <span>Total Matches</span>
+                                        <strong id="dash-total-matches">0</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card quick-leaderboard-card">
+                            <div class="card-header-sm" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                                <h3>Leaderboard Top 3</h3>
+                                <button class="btn-text" id="btn-view-full-leaderboard">View Full →</button>
+                            </div>
+                            <div class="podium-mini-list" id="dash-top3-list">
+                                <p class="empty-state">No leaderboard data available.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 2: AI Studio Workspace -->
+            <section id="tab-ai-studio" class="tab-content">
+                <div class="section-header">
+                    <div>
+                        <h2>AI Studio</h2>
+                        <p class="subtext">Generate tournaments from natural language & discover padel venues</p>
+                    </div>
+                </div>
+
+                <!-- AI Tournament Generator Container -->
+                <div class="glass-card ai-tool-card w-full-card">
+                    <div class="ai-tool-header">
+                        <h3>AI Tournament Generator</h3>
+                    </div>
+                    <p class="subtext">Describe your tournament setup or list player names. The AI assistant will validate required information and generate the schedule.</p>
+                    
+                    <div class="prompt-templates" style="margin-top:16px;">
+                        <span class="template-chip tab-template" data-prompt="Create an Americano tournament for 8 players: Carlos, Juan, Rafael, Pablo, Fernando, Diego, Lucas, Mateo at BSD Padel Center with 2 courts.">Complete Specs (With Venue)</span>
+                        <span class="template-chip tab-template" data-prompt="Create an Americano tournament for 8 players next Saturday.">Missing Venue (Triggers AI Challenge)</span>
+                        <span class="template-chip tab-template" data-prompt="Organize a Mexicano padel tournament for 12 players tomorrow at 5 PM at Kelapa Gading with 3 courts.">12 Players Mexicano</span>
+                    </div>
+
+                    <textarea id="tab-ai-gen-prompt" class="form-textarea" rows="3" placeholder="e.g. Create an Americano tournament for 8 players: Alice, Bob, Charlie, David, Eve, Frank, Grace, Hank next Sunday at 10 AM at Jakarta Padel Club with 2 courts."></textarea>
+                    
+                    <div style="display:flex; gap:12px; margin-top:16px;">
+                        <button class="btn btn-ai" id="btn-tab-run-gen" style="flex:1;">
+                            Generate Tournament Schedule
+                        </button>
+                    </div>
+
+                    <div id="tab-ai-gen-loader" class="ai-loading hidden">
+                        <div class="spinner"></div>
+                        <span>Analyzing input and checking details...</span>
+                    </div>
+
+                    <!-- AI Challenge Card -->
+                    <div id="tab-ai-challenge-card" class="ai-challenge-card hidden">
+                        <div class="challenge-header">
+                            <h4>More Details Needed</h4>
+                        </div>
+                        <p id="challenge-message-text" class="challenge-text">Please provide the missing details to complete the setup.</p>
+                        <div class="missing-tags-row" id="challenge-missing-tags">
+                            <!-- Missing tags -->
+                        </div>
+                        <div class="input-group" style="margin-top:16px;">
+                            <input type="text" id="challenge-reply-input" class="form-input" placeholder="e.g. Venue: BSD Padel Center">
+                            <button class="btn btn-ai" id="btn-submit-challenge-reply">Submit Answer</button>
+                        </div>
+                    </div>
+
+                    <!-- Result Preview Component -->
+                    <div id="tab-ai-gen-result" class="ai-result-preview-card hidden">
+                        <div class="result-header">
+                            <div>
+                                <span class="badge badge-type" id="res-type">Americano</span>
+                                <h4 id="res-title">BSD Summer Open</h4>
+                            </div>
+                            <span class="badge badge-status">Ready to Launch</span>
+                        </div>
+                        <div class="result-details-grid">
+                            <div><span class="res-label">PLAYERS COUNT</span><strong id="res-players">16</strong></div>
+                            <div><span class="res-label">COURTS</span><strong id="res-courts">4</strong></div>
+                            <div><span class="res-label">TARGET SCORE</span><strong id="res-target">21 pts</strong></div>
+                            <div><span class="res-label">DATE & TIME</span><strong id="res-datetime">Sat 09:00</strong></div>
+                            <div class="col-span-2"><span class="res-label">VENUE</span><strong id="res-venue">BSD Padel Center</strong></div>
+                        </div>
+
+                        <!-- Determined Player Names List -->
+                        <div style="margin-top: 18px;">
+                            <label class="res-label">PLAYER NAMES</label>
+                            <textarea id="res-player-names-textarea" class="form-textarea" rows="3" placeholder="Enter player names separated by commas or lines..."></textarea>
+                        </div>
+
+                        <button class="btn btn-primary w-full" id="btn-launch-ai-tournament" style="margin-top:20px; padding: 14px;">
+                            Launch & Start Tournament
+                        </button>
+                    </div>
+                </div>
+
+                <div class="two-col-grid align-start" style="margin-top: 28px;">
+                    <!-- AI Venue Finder -->
+                    <div class="glass-card ai-tool-card">
+                        <div class="ai-tool-header">
+                            <h3>AI Venue Finder</h3>
+                        </div>
+                        <p class="subtext">Search recommended padel venues around a specific location.</p>
+
+                        <div class="input-group" style="margin-top:16px;">
+                            <input type="text" id="tab-ai-venue-prompt" class="form-input" placeholder="e.g. Find a venue around Kelapa Gading with at least 4 courts.">
+                            <button class="btn btn-ai" id="btn-tab-run-venue">Search Venues</button>
+                        </div>
+
+                        <div id="tab-ai-venue-loader" class="ai-loading hidden">
+                            <div class="spinner"></div>
+                            <span>Searching top padel venues...</span>
+                        </div>
+
+                        <div class="venues-results-grid" id="tab-venue-results-container" style="margin-top:16px; max-height: 380px;">
+                            <p class="empty-state">Enter a location above to find venues.</p>
+                        </div>
+                    </div>
+
+                    <!-- AI Strategy & Advisor Chat -->
+                    <div class="glass-card ai-tool-card">
+                        <div class="ai-tool-header">
+                            <h3>Tournament Advisor</h3>
+                        </div>
+                        <p class="subtext">Ask questions about Americano/Mexicano rules or scheduling strategy.</p>
+
+                        <div class="input-group" style="margin-top: 16px;">
+                            <input type="text" id="ai-chat-input" class="form-input" placeholder="e.g. How do I balance pairings for 12 players?">
+                            <button class="btn btn-primary" id="btn-send-ai-chat">Ask Advisor</button>
+                        </div>
+
+                        <div id="ai-chat-response" class="chat-response-box hidden" style="margin-top: 16px;">
+                            <!-- AI chat answer -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 3: Tournaments List & Management -->
+            <section id="tab-tournaments" class="tab-content">
+                <div class="section-header">
+                    <h2>Manage Tournaments</h2>
+                    <button class="btn btn-primary" id="btn-create-tournament-manual">+ Create Tournament</button>
+                </div>
+                <div class="tournaments-grid" id="tournaments-list-container">
+                    <!-- Dynamic tournament cards -->
+                </div>
+            </section>
+
+            <!-- Tab 4: Matches & Live Scoring -->
+            <section id="tab-matches" class="tab-content">
+                <div class="section-header">
+                    <div>
+                        <h2>Live Match Scoring</h2>
+                        <p class="subtext">Real-time point scoring (Max 21 total pts) and round generation</p>
+                    </div>
+                    <div class="matches-header-actions" style="display:flex; gap:12px;">
+                        <button class="btn btn-ai" id="btn-generate-matches">Generate Matches</button>
+                        <button class="btn btn-secondary hidden" id="btn-mexicano-next-round">Generate Next Round (Mexicano)</button>
+                    </div>
+                </div>
+
+                <div class="filter-bar">
+                    <span class="filter-label" style="font-size:0.85rem; font-weight:700; color:var(--text-dim);">FILTER ROUND:</span>
+                    <div class="round-pills" id="round-pills-container">
+                        <button class="pill active" data-round="all">All Rounds</button>
+                    </div>
+                </div>
+
+                <div class="matches-grid" id="matches-container">
+                    <p class="empty-state">No matches generated yet. Click 'Generate Matches' to start!</p>
+                </div>
+            </section>
+
+            <!-- Tab 5: Live Leaderboard -->
+            <section id="tab-leaderboard" class="tab-content">
+                <div class="section-header">
+                    <div>
+                        <h2>Live Leaderboard</h2>
+                        <p class="subtext">Real-time player rankings updated instantly after each match</p>
+                    </div>
+                    <button class="btn btn-secondary" id="btn-refresh-leaderboard">Refresh</button>
+                </div>
+
+                <div class="glass-card table-card">
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>RANK</th>
+                                <th>PLAYER</th>
+                                <th>TOTAL POINTS</th>
+                                <th>WINS</th>
+                                <th>LOSSES</th>
+                                <th>POINT DIFF (+/-)</th>
+                                <th>MATCHES PLAYED</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-tbody">
+                            <tr><td colspan="7" class="empty-state">No rankings calculated yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal 1: Create / Edit Tournament Form -->
+    <div class="modal-backdrop" id="modal-tournament-form">
+        <div class="modal-card modal-lg">
+            <div class="modal-header">
+                <h3 id="form-title">Create New Tournament</h3>
+                <button class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="tournament-form">
+                    <input type="hidden" id="form-tournament-id">
+                    <div class="form-grid">
+                        <div class="form-group col-span-2">
+                            <label>Tournament Name</label>
+                            <input type="text" id="form-name" class="form-input" required placeholder="e.g. BSD Summer Padel Open">
+                        </div>
+                        <div class="form-group">
+                            <label>Match Type</label>
+                            <select id="form-type" class="form-select">
+                                <option value="Americano">Americano (Rotate All Pairs)</option>
+                                <option value="Mexicano">Mexicano (Rank-based Pairs)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Players</label>
+                            <input type="number" id="form-players" class="form-input" min="4" step="4" value="8" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Courts</label>
+                            <input type="number" id="form-courts" class="form-input" min="1" value="2" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Target Score (Max 21)</label>
+                            <input type="number" id="form-target-score" class="form-input" min="11" max="21" value="21" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tournament Date</label>
+                            <input type="date" id="form-date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Tournament Time</label>
+                            <input type="time" id="form-time" class="form-input">
+                        </div>
+                        <div class="form-group col-span-2">
+                            <label>Venue Location</label>
+                            <input type="text" id="form-venue" class="form-input" placeholder="e.g. BSD Padel Center">
+                        </div>
+                        <div class="form-group col-span-2">
+                            <label>Player Names (comma or line separated)</label>
+                            <textarea id="form-player-names" class="form-textarea" rows="3" placeholder="e.g. Alice, Bob, Charlie, David, Eve, Frank, Grace, Hank"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-close-modal">Cancel</button>
+                <button class="btn btn-primary" id="btn-save-tournament">Save Tournament</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Tournament Champion Celebration -->
+    <div class="modal-backdrop" id="modal-celebration">
+        <div class="modal-card celebration-card">
+            <div class="modal-body text-center">
+                <div class="trophy-anim">🏆</div>
+                <h2>Tournament Completed!</h2>
+                <p id="celeb-tournament-name">BSD Summer Padel Open</p>
+                <div class="podium-container" id="celeb-podium">
+                    <!-- Champion podium -->
+                </div>
+                <button class="btn btn-primary btn-close-modal" style="margin-top: 20px;">Close & Celebrate</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

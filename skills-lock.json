@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "skills": {
+    "firebase-firestore": {
+      "source": "firebase/skills",
+      "sourceType": "github",
+      "skillPath": "skills/firebase-firestore/SKILL.md",
+      "computedHash": "83395a27adb0be0e60c5f0aa3ca6e7dff18424b26928615b2b7247a2eab796ae"
+    },
+    "google-agents-cli-adk-code": {
+      "source": "google/agents-cli",
+      "sourceType": "github",
+      "skillPath": "skills/google-agents-cli-adk-code/SKILL.md",
+      "computedHash": "7c5aa9b3fd150c131c8d947d0ac02346e95dfba58dca8aa4eb9b69e52e22f4da"
+    },
+    "google-agents-cli-deploy": {
+      "source": "google/agents-cli",
+      "sourceType": "github",
+      "skillPath": "skills/google-agents-cli-deploy/SKILL.md",
+      "computedHash": "7c80c8d07126d3524dd193e30ce5315cf60914805437d3a2496f5427369a0b74"
+    },
+    "google-agents-cli-eval": {
+      "source": "google/agents-cli",
+      "sourceType": "github",
+      "skillPath": "skills/google-agents-cli-eval/SKILL.md",
+      "computedHash": "506ea8bd05fbaeb9d82a2c47f33fcebd097cf30a5a14c17d74db1ac5f153deb5"
+    },
+    "google-agents-cli-observability": {
+      "source": "google/agents-cli",
+      "sourceType": "github",
+      "skillPath": "skills/google-agents-cli-observability/SKILL.md",
+      "computedHash": "e91075e6b9959c6b58ef45693283986e83fa58f87eda415a0572bf5ca48e51e5"
+    },
+    "google-agents-cli-publish": {
+      "source": "google/agents-cli",
+      "sourceType": "github",
+      "skillPath": "skills/google-agents-cli-publish/SKILL.md",
+      "computedHash": "c6efaa94f2b6f27ba2c2dcbac997500b1e9ec4956e1872df05a206d3148f79bf"
+    },
+    "google-agents-cli-scaffold": {
+      "source": "google/agents-cli",
+      "sourceType": "github",
+      "skillPath": "skills/google-agents-cli-scaffold/SKILL.md",
+      "computedHash": "806938ef2d3c71a9653882d9674f99a3d6c659d8997f826fa542ef8d72a3fb19"
+    },
+    "google-agents-cli-workflow": {
+      "source": "google/agents-cli",
+      "sourceType": "github",
+      "skillPath": "skills/google-agents-cli-workflow/SKILL.md",
+      "computedHash": "408766fa809e8c3dab676799b46024781bd1427c3a6b7946822ca44faa6d2139"
+    }
+  }
+}
