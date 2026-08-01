@@ -145,6 +145,68 @@ def _clean_json_response(raw_text: str) -> dict[str, Any] | list[Any]:
     return json.loads(text)
 
 
+def _extract_params_from_prompt(user_prompt: str) -> dict[str, Any]:
+    """Helper to extract tournament parameters deterministically from prompt text."""
+    prompt_lower = user_prompt.lower()
+
+    # 1. Extract Player Count
+    nums_with_players = re.findall(r'(\d+)\s*(?:players?|participants?|people|p\b)', prompt_lower)
+    all_nums = [int(n) for n in re.findall(r'\b\d+\b', prompt_lower) if 4 <= int(n) <= 128]
+    
+    has_players = False
+    num_players = 8
+    if nums_with_players:
+        num_players = int(nums_with_players[0])
+        has_players = True
+    elif all_nums:
+        num_players = all_nums[-1] if len(all_nums) > 1 else all_nums[0]
+        has_players = True
+    elif "player" in prompt_lower or "players" in prompt_lower:
+        has_players = True
+
+    # 2. Extract Venue
+    has_venue = False
+    venue_name = ""
+    venue_kws = ["pik", "bsd", "jakarta", "gading", "padel", "club", "center", "court", "arena", "venue", "location"]
+    if any(kw in prompt_lower for kw in venue_kws):
+        has_venue = True
+        venue_match = re.search(r'(?:at|venue|club|near|in|around)\s+([A-Za-z0-9\s]+?)(?=\s+(?:with|for|next|tomorrow|\d+|$|\.))', user_prompt, re.IGNORECASE)
+        if venue_match:
+            venue_name = venue_match.group(1).strip().title()
+        else:
+            venue_name = "PIK Padel Club" if "pik" in prompt_lower else ("BSD Padel Center" if "bsd" in prompt_lower else "Padel Center")
+
+    # Match Type
+    match_type = "Mexicano" if "mexicano" in prompt_lower else "Americano"
+
+    # Courts
+    num_courts = 2
+    court_match = re.search(r'(\d+)\s*courts?', prompt_lower)
+    if court_match:
+        num_courts = int(court_match.group(1))
+
+    missing = []
+    if not has_venue:
+        missing.append("venue")
+    if not has_players:
+        missing.append("num_players")
+
+    return {
+        "status": "complete" if not missing else "needs_info",
+        "missing_fields": missing,
+        "challenge_message": "" if not missing else ("Please specify the venue location and number of players." if len(missing) == 2 else ("Which venue or padel club will host the tournament?" if "venue" in missing else "How many players will participate in the tournament?")),
+        "tournament_name": f"{venue_name or 'Padel'} {match_type} Open",
+        "match_type": match_type,
+        "num_players": num_players,
+        "num_courts": num_courts,
+        "target_score": 21,
+        "date": "2026-08-08",
+        "time": "09:00",
+        "venue": venue_name,
+        "player_names": [],
+    }
+
+
 async def ai_generate_tournament(user_prompt: str) -> dict[str, Any]:
     """Uses Gemma to parse tournament prompt and strictly validate venue and player information."""
     sys_instruction = (
@@ -177,7 +239,7 @@ async def ai_generate_tournament(user_prompt: str) -> dict[str, Any]:
     try:
         raw_output = await call_gemma_api(messages, max_tokens=1024, temperature=0.1)
         parsed = _clean_json_response(raw_output)
-        if isinstance(parsed, dict):
+        if isinstance(parsed, dict) and "status" in parsed:
             prompt_lower = user_prompt.lower()
             
             # 1. Player Detection
@@ -191,7 +253,7 @@ async def ai_generate_tournament(user_prompt: str) -> dict[str, Any]:
             )
             
             if found_nums and (not parsed.get("num_players") or parsed["num_players"] < 4):
-                parsed["num_players"] = found_nums[0]
+                parsed["num_players"] = found_nums[-1] if len(found_nums) > 1 else found_nums[0]
             elif not parsed.get("num_players") or parsed["num_players"] < 4:
                 parsed["num_players"] = 8
 
@@ -205,7 +267,7 @@ async def ai_generate_tournament(user_prompt: str) -> dict[str, Any]:
             )
 
             if has_venue and not venue_str:
-                match = re.search(r'\b(at|in|near|around)\s+([A-Za-z0-9\s]+?)(?=\s+(for|with|next|tomorrow|\d+|$))', user_prompt, re.IGNORECASE)
+                match = re.search(r'\b(at|in|near|around|venue)\s+([A-Za-z0-9\s]+?)(?=\s+(for|with|next|tomorrow|\d+|$))', user_prompt, re.IGNORECASE)
                 if match:
                     parsed["venue"] = match.group(2).strip().title()
                 else:
@@ -237,21 +299,8 @@ async def ai_generate_tournament(user_prompt: str) -> dict[str, Any]:
     except Exception as e:
         logger.error(f"Error parsing Gemma response for tournament generation: {e}")
 
-    # Fallback
-    return {
-        "status": "needs_info",
-        "missing_fields": ["venue", "num_players"],
-        "challenge_message": "Please specify the venue location and number of players.",
-        "tournament_name": "Padel Tournament",
-        "match_type": "Americano",
-        "num_players": 8,
-        "num_courts": 2,
-        "target_score": 21,
-        "date": "2026-08-08",
-        "time": "09:00",
-        "venue": "",
-        "player_names": [],
-    }
+    # Fallback to deterministic prompt extraction
+    return _extract_params_from_prompt(user_prompt)
 
 
 async def ai_recommend_venues(user_prompt: str) -> list[dict[str, Any]]:
