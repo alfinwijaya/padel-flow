@@ -180,19 +180,38 @@ async def ai_generate_tournament(user_prompt: str) -> dict[str, Any]:
         if isinstance(parsed, dict):
             prompt_lower = user_prompt.lower()
             
-            # Simple player validation
+            # 1. Player Detection
             found_nums = [int(n) for n in re.findall(r'\b\d+\b', prompt_lower) if 4 <= int(n) <= 128]
-            has_players = bool(found_nums) or len(parsed.get("player_names", [])) >= 4 or (isinstance(parsed.get("num_players"), int) and parsed["num_players"] >= 4)
+            has_player_kw = any(kw in prompt_lower for kw in ["player", "players", "participant", "participants", "roster"])
+            has_players = (
+                bool(found_nums)
+                or has_player_kw
+                or len(parsed.get("player_names", [])) >= 4
+                or (isinstance(parsed.get("num_players"), int) and parsed["num_players"] >= 4)
+            )
             
             if found_nums and (not parsed.get("num_players") or parsed["num_players"] < 4):
                 parsed["num_players"] = found_nums[0]
             elif not parsed.get("num_players") or parsed["num_players"] < 4:
                 parsed["num_players"] = 8
 
-            # Simple venue validation
+            # 2. Venue Detection
             venue_str = (parsed.get("venue") or "").strip()
-            has_venue = bool(venue_str) and venue_str.lower() not in ["tbd", "unspecified", "none", ""]
+            location_kw = ["at ", "in ", "near ", "around ", "bsd", "jakarta", "gading", "pik", "club", "center", "court", "arena", "padel", "location", "venue"]
+            has_venue_kw = any(kw in prompt_lower for kw in location_kw)
+            has_venue = (
+                (bool(venue_str) and venue_str.lower() not in ["tbd", "unspecified", "none", ""])
+                or has_venue_kw
+            )
 
+            if has_venue and not venue_str:
+                match = re.search(r'\b(at|in|near|around)\s+([A-Za-z0-9\s]+?)(?=\s+(for|with|next|tomorrow|\d+|$))', user_prompt, re.IGNORECASE)
+                if match:
+                    parsed["venue"] = match.group(2).strip().title()
+                else:
+                    parsed["venue"] = "Padel Center"
+
+            # 3. Check missing fields
             missing = []
             if not has_venue:
                 missing.append("venue")
@@ -200,7 +219,11 @@ async def ai_generate_tournament(user_prompt: str) -> dict[str, Any]:
             if not has_players:
                 missing.append("num_players")
 
-            if missing:
+            if not missing:
+                parsed["status"] = "complete"
+                parsed["missing_fields"] = []
+                parsed["challenge_message"] = ""
+            else:
                 parsed["status"] = "needs_info"
                 parsed["missing_fields"] = missing
                 if "venue" in missing and "num_players" in missing:
@@ -209,10 +232,6 @@ async def ai_generate_tournament(user_prompt: str) -> dict[str, Any]:
                     parsed["challenge_message"] = "Which venue or padel club will host the tournament?"
                 else:
                     parsed["challenge_message"] = "How many players will participate in the tournament?"
-            else:
-                parsed["status"] = "complete"
-                parsed["missing_fields"] = []
-                parsed["challenge_message"] = ""
 
             return parsed
     except Exception as e:
