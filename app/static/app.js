@@ -466,8 +466,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Handle Challenge Reply Submission (Continues Multi-Turn Challenge until ALL fields provided)
     document.getElementById("btn-submit-challenge-reply")?.addEventListener("click", () => {
-        const reply = document.getElementById("challenge-reply-input").value;
+        let reply = document.getElementById("challenge-reply-input").value.trim();
         if (!reply) return;
+
+        // If user typed a pure number (e.g. "8" or "12"), automatically append "players"
+        if (/^\d+$/.test(reply)) {
+            reply = `${reply} players`;
+        }
+
         const combinedPrompt = `${originalPromptText}. Additional details: ${reply}`;
         document.getElementById("tab-ai-gen-prompt").value = combinedPrompt;
         runAiGenerator(combinedPrompt);

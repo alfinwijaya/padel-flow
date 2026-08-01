@@ -187,12 +187,16 @@ async def ai_generate_tournament(user_prompt: str) -> dict[str, Any]:
         if isinstance(parsed, dict):
             prompt_lower = user_prompt.lower()
             
-            # Check if player count or explicit player list was supplied in user prompt
+            # Extract numbers >= 4 and <= 128 from user prompt
+            found_numbers = [int(n) for n in re.findall(r'\b\d+\b', prompt_lower) if 4 <= int(n) <= 128]
             player_keywords = ["player", "players", "participant", "participants"]
-            has_players_in_prompt = any(kw in prompt_lower for kw in player_keywords) or len(parsed.get("player_names", [])) >= 4
+            has_players_in_prompt = any(kw in prompt_lower for kw in player_keywords) or len(parsed.get("player_names", [])) >= 4 or len(found_numbers) > 0
             
+            if found_numbers and not parsed.get("player_names"):
+                parsed["num_players"] = found_numbers[0]
+
             # Check if venue or location was supplied in user prompt
-            venue_keywords = ["at ", "venue", "padel", "club", "center", "court", "arena", "location", "bsd", "gading", "jakarta", "serpong"]
+            venue_keywords = ["at ", "venue", "padel", "club", "center", "court", "arena", "location", "bsd", "gading", "jakarta", "serpong", "pik", "pantai indah kapuk"]
             parsed_venue = (parsed.get("venue") or "").strip()
             has_venue_in_prompt = any(kw in prompt_lower for kw in venue_keywords) or (bool(parsed_venue) and parsed_venue.lower() not in ["tbd", "unspecified", ""])
 
@@ -222,7 +226,7 @@ async def ai_generate_tournament(user_prompt: str) -> dict[str, Any]:
         logger.error(f"Error parsing Gemma response for tournament generation: {e}")
 
     prompt_lower = user_prompt.lower()
-    has_venue = any(kw in prompt_lower for kw in ["at ", "venue", "padel", "club", "center", "court", "arena", "location", "bsd", "gading", "jakarta", "serpong"])
+    has_venue = any(kw in prompt_lower for kw in ["at ", "venue", "padel", "club", "center", "court", "arena", "location", "bsd", "gading", "jakarta", "serpong", "pik", "pantai indah kapuk"])
     
     if has_venue:
         return {
@@ -262,6 +266,8 @@ async def ai_recommend_venues(user_prompt: str) -> list[dict[str, Any]]:
     sys_instruction = (
         "You are an AI Venue Recommendation assistant for PadelFlow.\n"
         "Given the user's location description and court requirements, recommend 3 realistic padel venues.\n"
+        "Provide clean, concise, realistic venue names (e.g., 'Pantai Indah Kapuk Padel Club', 'PIK Padel Arena', 'The Padel Hub PIK').\n"
+        "DO NOT repeat user search prompt words like 'find me a venue near' inside the venue names.\n"
         "Return ONLY a valid JSON array containing 3 objects with fields:\n"
         "- venue_name: string\n"
         "- address: string\n"
@@ -279,27 +285,39 @@ async def ai_recommend_venues(user_prompt: str) -> list[dict[str, Any]]:
         raw_output = await call_gemma_api(messages, max_tokens=1024, temperature=0.3)
         parsed = _clean_json_response(raw_output)
         if isinstance(parsed, list):
+            # Clean filler phrases if Gemma repeated prompt text
+            for v in parsed:
+                if isinstance(v, dict) and "venue_name" in v:
+                    v_name = v["venue_name"]
+                    for filler in ["Find me a venue near", "find me a venue near", "Find a venue around", "find a venue around", "Search venue near", "search venue near"]:
+                        v_name = v_name.replace(filler, "").strip()
+                    v["venue_name"] = v_name
             return parsed
     except Exception as e:
         logger.error(f"Error parsing Gemma response for venue recommendations: {e}")
 
-    clean_location = user_prompt.replace("Find a venue around", "").replace("with at least", "").strip() or "Padel Center"
+    # Fallback clean location extraction
+    clean_loc = user_prompt.lower()
+    for filler in ["find me a venue near", "find a venue around", "find venue near", "find venue at", "find venues in", "search venue near", "find me a venue", "find a venue", "near", "around", "at "]:
+        clean_loc = clean_loc.replace(filler, "")
+    clean_loc = clean_loc.strip().title() or "Padel Center"
+
     return [
         {
-            "venue_name": f"{clean_location} Padel Club",
-            "address": f"Jl. Main Boulevard, {clean_location}",
+            "venue_name": f"{clean_loc} Padel Club",
+            "address": f"Jl. Main Boulevard, {clean_loc}",
             "courts": 4,
             "description": "Panoramic outdoor courts with LED lighting and player lounge.",
         },
         {
-            "venue_name": f"Smash Arena {clean_location}",
-            "address": f"Sports Complex, {clean_location}",
+            "venue_name": f"Padel Arena {clean_loc}",
+            "address": f"Sports Complex, {clean_loc}",
             "courts": 6,
             "description": "Climate-controlled indoor facility with pro-grade turf.",
         },
         {
-            "venue_name": f"The Padel Hub {clean_location}",
-            "address": f"Avenue 88, {clean_location}",
+            "venue_name": f"The Padel Hub {clean_loc}",
+            "address": f"Avenue 88, {clean_loc}",
             "courts": 4,
             "description": "Modern courts, pro shop, and spectator grandstand.",
         },
